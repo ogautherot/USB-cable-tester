@@ -1,3 +1,6 @@
 *.elf
 *.map
 obj/*
+.*.swp
+*.s
+

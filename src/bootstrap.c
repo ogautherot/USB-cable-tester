@@ -5,7 +5,7 @@
 #include "bootstrap.h"
 #include "lpc824.h"
 
-__attribute__((noreturn)) void ResetISR(void);
+/* __attribute__((noreturn)) */ void ResetISR(void);
 __attribute__((noreturn)) void _main(void);
 
 __attribute__((noreturn)) void JmpResetISR(void);
@@ -52,14 +52,14 @@ void Pinint7IRQ(void) __attribute__((weak, alias("DummyISR")));
  *
  */
 __attribute__((section(".isr_vector"))) const func vectors[] = {
-    _vStackTop,      // 0x00
-    JmpResetISR,     // 0x04
-    JmpNmi,          // 0x08
-    JmpHardFaultISR, // 0x0c
-    0,               // 0x10
-    0,               // 0x14
-    0,               // 0x18
-    0xefffdd6f,      // 0x1c, checksum
+    (func)_vStackTop, // 0x00
+    JmpResetISR,      // 0x04
+    JmpNmi,           // 0x08
+    JmpHardFaultISR,  // 0x0c
+    0,                // 0x10
+    0,                // 0x14
+    0,                // 0x18
+    (func)0xefffdd6f, // 0x1c, checksum
 
     0,          // 0x20
     0,          // 0x24
@@ -127,7 +127,8 @@ __attribute__((section(".after_vectors"))) void DummyISR(void) {
 /** Reset vector
  * - Initialize memory
  */
-// #pragma GCC optimize("O1")
+#pragma GCC push_options
+#pragma GCC optimize("optimize-sibling-calls")
 __attribute__((section(".after_vectors"))) void ResetISR(void) {
   /* Data section */
   uint32_t *dest = __data_section_table.Dest;
@@ -149,11 +150,13 @@ __attribute__((section(".after_vectors"))) void ResetISR(void) {
     *dest++ = 0xdeadbeef;
   }
 
-  asm("b _main");
+  // asm(".global _main\n  b _main");
+  return _main();
 }
+#pragma GCC pop_options
 
 __attribute__((section(".after_vectors"))) void _cold_reset(void) {
-  uint32_t *dest = &__base_resetram;
+  uint32_t *dest = __base_resetram;
   uint32_t *end = __top_resetram;
 
   while (dest < end) {
@@ -202,6 +205,8 @@ __attribute__((section(".after_vectors"))) void _main(void) {
 }
 
 __attribute__((section(".after_vectors"))) void exit(int status) {
+  (void)status;
+
   // freeze CPU
   while (1) {
     asm("wfi");
