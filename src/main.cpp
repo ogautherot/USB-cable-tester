@@ -5,8 +5,26 @@
 #include "lpc824.h"
 
 #include "bootstrap.h"
+#include "led.h"
+#include "probe.h"
 
 // #include "testclass.h"
+
+uint32_t systick_count = 0;
+
+__attribute__((__used__, section(".after_vectors"))) void Nmi(void) {
+  // Systick, automatic wake up
+}
+
+__attribute__((section(".after_vectors"))) void SystickISR(void) {
+  // Systick, automatic wake up
+  systick_count++;
+}
+
+__attribute__((__used__, section(".after_vectors"))) void HardFaultISR(void) {
+  while (1) {
+  }
+}
 
 static void SetClock(void) {
   // Do nothing for now: PLL not used
@@ -24,10 +42,25 @@ void SystemInit(void) {
  *
  */
 int main(void) {
-  GPIO0->dir0 = (1 << 14) | (1 << 15) | (1 << 17) | (1 << 23);
-  GPIO0->set0 = (1 << 14) | (1 << 15) | (1 << 17) | (1 << 23);
+  int cnt = 1;
+  int reading;
+  Led.Enable();
+
   while (1) {
-    // test.inc();
+    int stat;
+
+    Probe.AssertPort(cnt);
+    reading = Probe.SamplePort();
+    stat = Probe.Check(cnt, reading);
+
+    if (Probe.IsDisconnected()) {
+      Led.Disable();
+    } else {
+      Led.Enable();
+      Led.SetLedState(stat);
+    }
+    // Increment
+    cnt = (cnt < 0x08) ? (cnt << 1) : 1;
     asm("wfi");
   }
 }

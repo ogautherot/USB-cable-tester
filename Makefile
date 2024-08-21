@@ -18,12 +18,12 @@ CXX=arm-none-eabi-g++
 
 TARGET=lpc824-UsbCableTester
 XTARGET=${TARGET}.elf
-OBJS=obj/bootstrap.o obj/main.o obj/crp.o 
+OBJS=obj/bootstrap.o obj/main.o obj/crp.o obj/led.o obj/probe.o
 OOCDCFG=/usr/share/openocd/scripts
 
-CFLAGS=-Og -g -mthumb -mcpu=cortex-m0 -Wall -Wextra -Iinclude
+CFLAGS=-Og -g -mthumb -mcpu=cortex-m0 -Wall -Wextra -Iinclude -flto
 CXXFLAGS=${CFLAGS} -fno-exceptions
-LDFLAGS=-nostdlib -g -Wl,-Map=${TARGET}.map -Wl,--cref -Wl,--gc-sections \
+LDFLAGS=-nostdlib -g -flto -Wl,-Map=${TARGET}.map -Wl,--cref -Wl,--gc-sections \
 	-Wl,-print-memory-usage -mcpu=cortex-m0 -mthumb \
 	-T ld/lpc824.ld
 LIBS=-lgcc -lc

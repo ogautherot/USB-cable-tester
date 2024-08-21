@@ -2,6 +2,9 @@
  *
  */
 
+#ifndef __BOOTSTRAP_H_INCLUDED__
+#define __BOOTSTRAP_H_INCLUDED__
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -42,6 +45,10 @@ extern const func __init_array_start[];
 extern const func __init_array_end[];
 extern void _vStackTop(void);
 
+void Nmi(void);
+void HardFaultISR(void);
+void SystickISR(void);
+
 int main(void);
 void SystemInit(void);
 void exit(int stat);
@@ -49,3 +56,5 @@ void exit(int stat);
 #ifdef __cplusplus
 }
 #endif
+
+#endif // __BOOTSTRAP_H_INCLUDED__

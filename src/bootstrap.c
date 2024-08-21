@@ -12,11 +12,11 @@ __attribute__((noreturn)) void JmpResetISR(void);
 __attribute__((noreturn)) void JmpNmi(void);
 __attribute__((noreturn)) void JmpHardFaultISR(void);
 
-void Nmi(void) __attribute__((weak, alias("DummyISR")));
-void HardFaultISR(void) __attribute__((weak, alias("DummyISR")));
 void SvcISR(void) __attribute__((weak, alias("DummyISR")));
 void PendsvISR(void) __attribute__((weak, alias("DummyISR")));
 void SystickISR(void) __attribute__((weak, alias("DummyISR")));
+void HardFaultISR(void) __attribute__((weak, alias("DummyISR")));
+void Nmi(void) __attribute__((weak, alias("DummyISR")));
 
 void Spi0IRQ(void) __attribute__((weak, alias("DummyISR")));
 void Spi1IRQ(void) __attribute__((weak, alias("DummyISR")));
@@ -51,7 +51,7 @@ void Pinint7IRQ(void) __attribute__((weak, alias("DummyISR")));
 /**
  *
  */
-__attribute__((section(".isr_vector"))) const func vectors[] = {
+__attribute__((__used__, section(".isr_vector"))) const func vectors[] = {
     (func)_vStackTop, // 0x00
     JmpResetISR,      // 0x04
     JmpNmi,           // 0x08
@@ -59,7 +59,7 @@ __attribute__((section(".isr_vector"))) const func vectors[] = {
     0,                // 0x10
     0,                // 0x14
     0,                // 0x18
-    (func)0xefffdd6f, // 0x1c, checksum
+    (func)0xefffdd21, // 0x1c, checksum
 
     0,          // 0x20
     0,          // 0x24
@@ -104,22 +104,24 @@ __attribute__((section(".isr_vector"))) const func vectors[] = {
     Pinint7IRQ   // 0xbc (31)
 };
 
-__attribute__((noreturn, section(".after_vectors"))) void JmpResetISR(void) {
+__attribute__((__used__, noreturn, section(".after_vectors"))) void
+JmpResetISR(void) {
   asm("b ResetISR");
 }
 
-__attribute__((noreturn, section(".after_vectors"))) void JmpNmi(void) {
+__attribute__((__used__, noreturn, section(".after_vectors"))) void
+JmpNmi(void) {
   asm("b Nmi");
 }
 
-__attribute__((noreturn, section(".after_vectors"))) void
+__attribute__((__used__, noreturn, section(".after_vectors"))) void
 JmpHardFaultISR(void) {
   asm("b HardFaultISR");
 }
 
 /**
  */
-__attribute__((section(".after_vectors"))) void DummyISR(void) {
+__attribute__((__used__, section(".after_vectors"))) void DummyISR(void) {
   while (1) {
   }
 }
@@ -199,6 +201,10 @@ __attribute__((section(".after_vectors"))) void _main(void) {
   } while (0);
 
   SystemInit();
+
+  SYSTICK->rvr = 11999;
+  SYSTICK->cvr = 11999;
+  SYSTICK->csr = 3;
 
   int status = main();
   exit(status);
